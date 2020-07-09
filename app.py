@@ -1,5 +1,6 @@
-from flask import Flask, render_template,redirect,request,g 
-from flask_pymongo import PyMongo
+from flask import Flask, render_template 
+from flask_pymongo import PyMongo,BaseConverter, BSONObjectIdConverter
+
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
 from itsdangerous import URLSafeSerializer
 
@@ -31,13 +32,15 @@ def load_user(session_token):
         return Teacher(teacher_data)
     return None
 
-@app.route('/register')
+@app.route('/create')
 def create():
     teachers = mongo.db.teachers
-    session_token = serializer.dumps(['Solo', 'Nypass'])
-    teachers.insert({'name' : 'Ola', 'session_token' : session_token})
+    session_token = serializer.dumps(['Ola', 'password'])
+    teachers.insert_many([{'name' : 'Ola', 'session_token' : session_token},
+                            {'name' : 'Ali', 'session_token' : session_token},
+                            {'name' : 'Jon', 'session_token' : session_token}])
 
-    return render_template('register.html')
+    return '<h1>Lærer er Klar!</h1>'
 
 @app.route('/login')
 def index():
@@ -48,12 +51,12 @@ def index():
 
     login_user(ola)
 
-    return render_template('login.html')
+    return '<h1> Du er inne nå! </h1>'
 
 @app.route('/home')
 @login_required
 def home():
-    return render_template('home.html')
+    return '<h1>Velkommen {}</h1>'.format(current_user.teacher_data['name'])
 
 @app.route('/logout')
 @login_required
