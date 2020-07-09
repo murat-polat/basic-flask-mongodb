@@ -1,4 +1,4 @@
-from flask import Flask 
+from flask import Flask, render_template,redirect,request,g 
 from flask_pymongo import PyMongo
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
 from itsdangerous import URLSafeSerializer
@@ -13,6 +13,7 @@ app.config["MONGO_URI"] = "mongodb://localhost:27017/rat"   ## local DB, But can
 
 mongo = PyMongo(app)
 login_manager = LoginManager(app)
+login_manager.login_view = 'login'
 serializer = URLSafeSerializer(app.secret_key)
 
 class Teacher(UserMixin):
@@ -30,13 +31,13 @@ def load_user(session_token):
         return Teacher(teacher_data)
     return None
 
-@app.route('/create')
+@app.route('/register')
 def create():
     teachers = mongo.db.teachers
     session_token = serializer.dumps(['Solo', 'Nypass'])
     teachers.insert({'name' : 'Ola', 'session_token' : session_token})
 
-    return '<h1>Lærer er Klar!</h1>'
+    return render_template('register.html')
 
 @app.route('/login')
 def index():
@@ -47,12 +48,12 @@ def index():
 
     login_user(ola)
 
-    return '<h1>Nå du er inne!</h1>'
+    return render_template('login.html')
 
 @app.route('/home')
 @login_required
 def home():
-    return '<h1>Velkommen {}</h1>'.format(current_user.teacher_data['name'])
+    return render_template('home.html')
 
 @app.route('/logout')
 @login_required
